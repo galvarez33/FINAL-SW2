@@ -18,6 +18,7 @@ db.listingsAndReviews.aggregate([ { $group: { _id: "$property_type", count: { $s
 ## Apartado 4
 En la colección listingAndReviews indique el número de alojamientos que tienen 2, 3, 4 o 5 beds.
 db.listingsAndReviews.aggregate({$match:{beds:{$in:[2,3,4,5]}}},{$group:{_id:"$beds",count:{$sum:1}}})
+que no tnega 2,3,4 o 5 camas: db.listingsAndReviews.aggregate({$match:{beds:{$nin:[2,3,4,5]}}},{$group:{_id:"$beds",count:{$sum:1}}})
 
 
 

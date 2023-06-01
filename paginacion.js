@@ -4,15 +4,23 @@ const dbo = require('../db/conn');
 const ObjectId = require('mongodb').ObjectId;
 const MAX_RESULTS = parseInt(process.env.MAX_RESULTS);
 const COLLECTION = 'books';
-const max_size = 5
-const min_size = 1
+
 
 //getBooks()
 router.get('/offsetBasedPagination', async (req, res) => {
-  const page = req.query.page ? Math.min(parseInt(req.query.page), MAX_RESULTS) : MAX_RESULTS;
-  const size = req.query.size ? parseInt(req.query.size) : 0;
+  // COMPROBACIONES PÁGINA:
+  //  - Si no introducen página, usamos 1 (la primera).
+  //  - Si introducen página, tiene que ser como mínimo 1
+  const page = req.query.page ? Math.max(parseInt(req.query.page), 1) : 1;
+
+  // COMPROBACIONES SIZE:
+  //  - Si no introducen size, usamos MAX_SIZE
+  //  - Si introducen size, tiene que ser mayor que 0 y menor que MAX_RESULTS
+  let size = MAX_RESULTS;
+  if (req.query.size && (parseInt(req.query.size) > 0)) {
+    size = Math.min(parseInt(req.query.size), MAX_RESULTS);
+  }
   const offset = (page - 1) * size;
-  console.log(page, size, offset);
   
   try {
     const dbConnect = dbo.getDb();
