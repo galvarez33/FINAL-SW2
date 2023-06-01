@@ -4,7 +4,18 @@ const dbo = require('../db/conn');
 const ObjectId = require('mongodb').ObjectId;
 const MAX_RESULTS = parseInt(process.env.MAX_RESULTS);
 const COLLECTION = 'books';
-//getBooks()
+
+
+const bookPostSchema = require("../schemas/bookPostSchema.json");
+
+// Load schema beforehand
+const Ajv = require('ajv/dist/2020');
+const ajv = new Ajv();
+
+ajv.addSchema(bookPostSchema, 'PostBooks');
+
+
+
 
 //getBooks()
 router.get('/', async (req, res) => {
@@ -120,12 +131,21 @@ router.get('/:id', async (req, res) => {
 
 //addBook()
 router.post('/', async (req, res) => {
-  const dbConnect = dbo.getDb();
-  console.log(req.body);
-  let result = await dbConnect
+  const data = req.body;
+  const validate = ajv.getSchema("PostBooks");
+  const valid = validate(data);
+
+  if (valid){
+    const dbConnect = dbo.getDb();
+    console.log(req.body);
+    let result = await dbConnect
     .collection(COLLECTION)
     .insertOne(req.body);
-  res.status(201).send(result);
+    res.status(201).send(result);
+  }else{
+    res.status(400).send("Bad Format Post");
+  }
+   
 });
 
 //deleteBookById()
