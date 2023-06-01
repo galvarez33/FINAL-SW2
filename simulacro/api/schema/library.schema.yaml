@@ -158,7 +158,6 @@ components:
         - _id
         - title
         - author
-        - link
     ID:
       type: string
       description: Book ID obtained from the database

@@ -4,9 +4,37 @@ const dbo = require('../db/conn');
 const ObjectId = require('mongodb').ObjectId;
 const MAX_RESULTS = parseInt(process.env.MAX_RESULTS);
 const COLLECTION = 'books';
-const max_size = 5
-const min_size = 1
 //getBooks()
+
+//getBooks()
+router.get('/', async (req, res) => {
+  let limit = MAX_RESULTS;
+  if (req.query.limit){
+    limit = Math.min(parseInt(req.query.limit), MAX_RESULTS);
+  }
+  let next = req.query.next;
+  let query = {}
+  if (next){
+    query = {_id: {$lt: new ObjectId(next)}}
+  }
+  const dbConnect = dbo.getDb();
+  let results = await dbConnect
+    .collection(COLLECTION)
+    .find(query)
+    .sort({_id: -1})
+    .limit(limit)
+    .project({ _id: 1, title: 1, author: 1, link: { $concat: ['http://localhost:3000/api/v2/book/', { $toString: '$_id' }] } })
+    .toArray()
+    .catch(err => res.status(400).send('Error searching for books'));
+  next = results.length == limit ? results[results.length - 1]._id : null;
+  res.json({results, next}).status(200);
+});
+
+
+
+
+
+
 router.get('/offsetBasedPagination', async (req, res) => {
   const page = req.query.page ? Math.min(parseInt(req.query.page), MAX_RESULTS) : MAX_RESULTS;
   const size = req.query.size ? parseInt(req.query.size) : 0;
@@ -19,7 +47,7 @@ router.get('/offsetBasedPagination', async (req, res) => {
       .collection(COLLECTION)
       .find() 
       .sort({ _id:1 })
-      .project({title:1})
+      .project({title:1,  link: { $concat: ['http://localhost:3010'+ process.env.BASE_URI+ '/book/', { $toString: '$_id' }] } })
       .skip(offset)
       .limit(size)
       .toArray();
